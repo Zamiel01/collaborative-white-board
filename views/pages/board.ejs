@@ -1,0 +1,505 @@
+<%- include('../partials/head') %>
+<link rel="stylesheet" href="/styles/board.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+<div class="board-container">
+    <div class="sidebar">
+        <button onclick="window.location.href='/dashboard'" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+        <h2>Tools</h2>
+        <ul class="tools">
+            <li><button class="tool-btn" id="pen-tool"><i class="fas fa-pen"></i> Pen</button></li>
+            <li><button class="tool-btn" id="eraser-tool"><i class="fas fa-eraser"></i> Eraser</button></li>
+            <li>
+                <button class="tool-btn" id="shapes-tool"><i class="fas fa-shapes"></i> Shapes</button>
+                <div id="shapes-dropdown" class="dropdown-content">
+                    <button class="shape-btn" data-shape="rectangle">Rectangle</button>
+                    <button class="shape-btn" data-shape="circle">Circle</button>
+                    <button class="shape-btn" data-shape="line">Line</button>
+                    <button class="shape-btn" data-shape="arrow">Arrow</button>
+                    <button class="shape-btn" data-shape="flowchart-start">Flowchart Start</button>
+                    <button class="shape-btn" data-shape="flowchart-process">Flowchart Process</button>
+                    <button class="shape-btn" data-shape="flowchart-decision">Flowchart Decision</button>
+                </div>
+            </li>
+            <li><button class="tool-btn" id="text-tool"><i class="fas fa-font"></i> Text</button></li>
+            <li><button class="tool-btn" id="sticky-note-tool"><i class="fas fa-sticky-note"></i> Sticky Note</button></li>
+            <li><button class="tool-btn" id="move-tool"><i class="fas fa-arrows-alt"></i> Move</button></li>
+            <li><input type="color" id="color-picker-tool" class="tool-btn" value="#000000"></li>
+            <li><button class="tool-btn" id="undo-tool"><i class="fas fa-undo"></i> Undo</button></li>
+            <li><button class="tool-btn" id="redo-tool"><i class="fas fa-redo"></i> Redo</button></li>
+            <li><button class="tool-btn" id="reset-tool"><i class="fas fa-trash"></i> Reset</button></li>
+            <li><button class="tool-btn" id="chat-tool"><i class="fas fa-comments"></i> Chat</button></li>
+        </ul>
+        <button class="invite-btn" id="invite-btn"><i class="fas fa-user-plus"></i> Invite</button>
+    </div>
+    <div class="board-content">
+        <h1><%= board.name %></h1>
+        <p>Modified by <%= board.modifiedBy %> on <%= board.modifiedAt ? board.modifiedAt.toDateString() : 'N/A' %></p>
+        <canvas id="whiteboard" width="1200" height="800"></canvas>
+    </div>
+    <div class="chat-container" id="chat-container">
+        <div class="chat-header">
+            <h2>Team Chat</h2>
+            <button class="close-chat" id="close-chat-btn">&times;</button>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <!-- Messages will be appended here -->
+        </div>
+        <div class="chat-input">
+            <input type="text" id="chat-input" placeholder="Type a message...">
+            <button id="send-chat-btn">Send</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('whiteboard');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    let currentTool = 'pen';
+    let currentColor = '#000000';
+    let history = [];
+    let historyIndex = -1;
+    let startX, startY, offsetX, offsetY;
+    let selectedShape = null;
+    let selectedElement = null;
+    let elements = [];
+
+    // Load saved board state if available
+    window.onload = () => {
+        const savedState = localStorage.getItem('<%= board.id %>-state');
+        if (savedState) {
+            const state = JSON.parse(savedState);
+            elements = state.elements;
+            history = state.history;
+            historyIndex = state.historyIndex;
+            restoreHistory();
+        }
+    };
+
+    // Save board state to local storage
+    function saveBoardState() {
+        const state = {
+            elements: elements,
+            history: history,
+            historyIndex: historyIndex
+        };
+        localStorage.setItem('<%= board.id %>-state', JSON.stringify(state));
+    }
+
+    document.querySelectorAll('.tool-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            currentTool = button.id.replace('-tool', '');
+            console.log(currentTool + ' selected');
+        });
+    });
+
+    document.getElementById('color-picker-tool').addEventListener('input', (event) => {
+        currentColor = event.target.value;
+        console.log('Color selected: ' + currentColor);
+    });
+
+    document.getElementById('shapes-tool').addEventListener('click', () => {
+        document.getElementById('shapes-dropdown').classList.toggle('show');
+    });
+
+    document.querySelectorAll('.shape-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            selectedShape = button.getAttribute('data-shape');
+            console.log('Shape selected: ' + selectedShape);
+            document.getElementById('shapes-dropdown').classList.remove('show');
+        });
+    });
+
+    canvas.addEventListener('mousedown', (event) => {
+        drawing = true;
+        startX = event.offsetX;
+        startY = event.offsetY;
+        if (currentTool === 'move') {
+            selectedElement = getElementAtPosition(startX, startY);
+            if (selectedElement) {
+                offsetX = startX - selectedElement.x;
+                offsetY = startY - selectedElement.y;
+            }
+        } else {
+            ctx.beginPath();
+            ctx.moveTo(event.offsetX, event.offsetY);
+        }
+    });
+
+    canvas.addEventListener('mousemove', (event) => {
+        if (drawing) {
+            if (currentTool === 'pen') {
+                ctx.strokeStyle = currentColor;
+                ctx.lineWidth = 2;
+                ctx.lineTo(event.offsetX, event.offsetY);
+                ctx.stroke();
+            } else if (currentTool === 'eraser') {
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 10;
+                ctx.lineTo(event.offsetX, event.offsetY);
+                ctx.stroke();
+            } else if (currentTool === 'move' && selectedElement) {
+                const dx = event.offsetX - offsetX;
+                const dy = event.offsetY - offsetY;
+                selectedElement.x = dx;
+                selectedElement.y = dy;
+                restoreHistory();
+                drawElements();
+            }
+        }
+    });
+
+    canvas.addEventListener('mouseup', (event) => {
+        if (currentTool === 'shapes' && selectedShape) {
+            const endX = event.offsetX;
+            const endY = event.offsetY;
+            ctx.strokeStyle = currentColor;
+            ctx.lineWidth = 2;
+            let element = { type: selectedShape, x: startX, y: startY, width: endX - startX, height: endY - startY, color: currentColor };
+            if (selectedShape === 'rectangle') {
+                ctx.strokeRect(startX, startY, endX - startX, endY - startY);
+            } else if (selectedShape === 'circle') {
+                const radius = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+                ctx.beginPath();
+                ctx.arc(startX, startY, radius, 0, 2 * Math.PI);
+                ctx.stroke();
+                element.radius = radius;
+            } else if (selectedShape === 'line') {
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(endX, endY);
+                ctx.stroke();
+                element.endX = endX;
+                element.endY = endY;
+            } else if (selectedShape === 'arrow') {
+                drawArrow(ctx, startX, startY, endX, endY);
+                element.endX = endX;
+                element.endY = endY;
+            } else if (selectedShape === 'flowchart-start') {
+                ctx.fillStyle = currentColor;
+                ctx.fillRect(startX, startY, endX - startX, endY - startY);
+                ctx.strokeRect(startX, startY, endX - startX, endY - startY);
+            } else if (selectedShape === 'flowchart-process') {
+                ctx.fillStyle = currentColor;
+                ctx.fillRect(startX, startY, endX - startX, endY - startY);
+                ctx.strokeRect(startX, startY, endX - startX, endY - startY);
+            } else if (selectedShape === 'flowchart-decision') {
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo((startX + endX) / 2, endY);
+                ctx.lineTo(endX, startY);
+                ctx.lineTo((startX + endX) / 2, startY - (endY - startY));
+                ctx.closePath();
+                ctx.stroke();
+            }
+            elements.push(element);
+            saveHistory();
+            saveBoardState();
+        }
+        drawing = false;
+        ctx.closePath();
+    });
+
+    canvas.addEventListener('mouseout', () => {
+        drawing = false;
+        ctx.closePath();
+    });
+
+    canvas.addEventListener('click', (event) => {
+        if (currentTool === 'text') {
+            const text = prompt('Enter text:');
+            if (text) {
+                ctx.fillStyle = currentColor;
+                ctx.font = '20px Arial';
+                ctx.fillText(text, event.offsetX, event.offsetY);
+                elements.push({ type: 'text', x: event.offsetX, y: event.offsetY, text: text, color: currentColor });
+                saveHistory();
+                saveBoardState();
+            }
+        } else if (currentTool === 'sticky-note') {
+            const note = prompt('Enter sticky note text:');
+            if (note) {
+                ctx.fillStyle = '#ffff88';
+                ctx.fillRect(event.offsetX, event.offsetY, 150, 150);
+                ctx.fillStyle = '#000';
+                ctx.font = '16px Arial';
+                wrapText(ctx, note, event.offsetX + 10, event.offsetY + 20, 130, 20);
+                elements.push({ type: 'sticky-note', x: event.offsetX, y: event.offsetY, text: note });
+                saveHistory();
+                saveBoardState();
+            }
+        }
+    });
+
+    document.getElementById('undo-tool').addEventListener('click', () => {
+        if (historyIndex > 0) {
+            historyIndex--;
+            restoreHistory();
+            saveBoardState();
+        }
+    });
+
+    document.getElementById('redo-tool').addEventListener('click', () => {
+        if (historyIndex < history.length - 1) {
+            historyIndex++;
+            restoreHistory();
+            saveBoardState();
+        }
+    });
+
+    document.getElementById('reset-tool').addEventListener('click', () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        elements = [];
+        saveHistory();
+        saveBoardState();
+    });
+
+    function saveHistory() {
+        history = history.slice(0, historyIndex + 1);
+        history.push(canvas.toDataURL());
+        historyIndex++;
+    }
+
+    function restoreHistory() {
+        const img = new Image();
+        img.src = history[historyIndex];
+        img.onload = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            drawElements();
+        };
+    }
+
+    function drawElements() {
+        elements.forEach(element => {
+            ctx.strokeStyle = element.color;
+            ctx.lineWidth = 2;
+            if (element.type === 'rectangle') {
+                ctx.strokeRect(element.x, element.y, element.width, element.height);
+            } else if (element.type === 'circle') {
+                ctx.beginPath();
+                ctx.arc(element.x, element.y, element.radius, 0, 2 * Math.PI);
+                ctx.stroke();
+            } else if (element.type === 'line') {
+                ctx.beginPath();
+                ctx.moveTo(element.x, element.y);
+                ctx.lineTo(element.endX, element.endY);
+                ctx.stroke();
+            } else if (element.type === 'arrow') {
+                drawArrow(ctx, element.x, element.y, element.endX, element.endY);
+            } else if (element.type === 'text') {
+                ctx.fillStyle = element.color;
+                ctx.font = '20px Arial';
+                ctx.fillText(element.text, element.x, element.y);
+            } else if (element.type === 'sticky-note') {
+                ctx.fillStyle = '#ffff88';
+                ctx.fillRect(element.x, element.y, 150, 150);
+                ctx.fillStyle = '#000';
+                ctx.font = '16px Arial';
+                wrapText(ctx, element.text, element.x + 10, element.y + 20, 130, 20);
+            }
+        });
+    }
+
+    function wrapText(context, text, x, y, maxWidth, lineHeight) {
+        const words = text.split(' ');
+        let line = '';
+        for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = context.measureText(testLine);
+            const testWidth = metrics.width;
+            if (testWidth > maxWidth && n > 0) {
+                context.fillText(line, x, y);
+                line = words[n] + ' ';
+                y += lineHeight;
+            } else {
+                line = testLine;
+            }
+        }
+        context.fillText(line, x, y);
+    }
+
+    function drawArrow(context, fromX, fromY, toX, toY) {
+        const headLength = 10;
+        const dx = toX - fromX;
+        const dy = toY - fromY;
+        const angle = Math.atan2(dy, dx);
+        context.beginPath();
+        context.moveTo(fromX, fromY);
+        context.lineTo(toX, toY);
+        context.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6));
+        context.moveTo(toX, toY);
+        context.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
+        context.stroke();
+    }
+
+    function getElementAtPosition(x, y) {
+        for (let i = elements.length - 1; i >= 0; i--) {
+            const element = elements[i];
+            if (element.type === 'rectangle' || element.type === 'flowchart-start' || element.type === 'flowchart-process') {
+                if (x >= element.x && x <= element.x + element.width && y >= element.y && y <= element.y + element.height) {
+                    return element;
+                }
+            } else if (element.type === 'circle') {
+                const dx = x - element.x;
+                const dy = y - element.y;
+                if (Math.sqrt(dx * dx + dy * dy) <= element.radius) {
+                    return element;
+                }
+            } else if (element.type === 'line' || element.type === 'arrow') {
+                const dx = element.endX - element.x;
+                const dy = element.endY - element.y;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                const dot = ((x - element.x) * dx + (y - element.y) * dy) / Math.pow(length, 2);
+                const closestX = element.x + dot * dx;
+                const closestY = element.y + dot * dy;
+                const distance = Math.sqrt(Math.pow(closestX - x, 2) + Math.pow(closestY - y, 2));
+                if (distance <= 5) {
+                    return element;
+                }
+            } else if (element.type === 'text' || element.type === 'sticky-note') {
+                if (x >= element.x && x <= element.x + 150 && y >= element.y && y <= element.y + 150) {
+                    return element;
+                }
+            }
+        }
+        return null;
+    }
+
+    // Chat functionality
+    const chatInput = document.getElementById('chat-input');
+    const chatMessages = document.getElementById('chat-messages');
+    const sendChatBtn = document.getElementById('send-chat-btn');
+    const chatContainer = document.getElementById('chat-container');
+    const chatToolBtn = document.getElementById('chat-tool');
+    const closeChatBtn = document.getElementById('close-chat-btn');
+
+    chatToolBtn.addEventListener('click', () => {
+        chatContainer.style.display = 'flex';
+    });
+
+    closeChatBtn.addEventListener('click', () => {
+        chatContainer.style.display = 'none';
+    });
+
+    sendChatBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+    function sendMessage() {
+        const message = chatInput.value.trim();
+        if (message) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('chat-message');
+            messageElement.textContent = message;
+            chatMessages.appendChild(messageElement);
+            chatInput.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }
+
+    // Invite functionality
+    document.getElementById('invite-btn').addEventListener('click', () => {
+        const inviteLink = `${window.location.origin}/board/<%= board.id %>`;
+        navigator.clipboard.writeText(inviteLink).then(() => {
+            alert('Invite link copied to clipboard: ' + inviteLink);
+        }).catch(err => {
+            console.error('Failed to copy invite link: ', err);
+        });
+    });
+</script>
+
+<style>
+    .chat-container {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        width: 300px;
+        background: #000;
+        color: #fff;
+        border: 1px solid #ccc;
+        display: none;
+        flex-direction: column;
+        height: 400px;
+    }
+
+    .chat-header {
+        background: #333;
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .chat-messages {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+        background: #222;
+    }
+
+    .chat-input {
+        display: flex;
+        border-top: 1px solid #ccc;
+    }
+
+    .chat-input input {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-right: 1px solid #ccc;
+        background: #333;
+        color: #fff;
+    }
+
+    .chat-input button {
+        padding: 10px;
+        border: none;
+        background: #007bff;
+        color: #fff;
+        cursor: pointer;
+    }
+
+    .chat-input button:hover {
+        background: #0056b3;
+    }
+
+    .chat-message {
+        margin-bottom: 10px;
+        padding: 10px;
+        background: #444;
+        border-radius: 5px;
+    }
+
+    .close-chat {
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 20px;
+        cursor: pointer;
+    }
+
+    .invite-btn {
+        margin-top: 10px;
+        padding: 10px;
+        background: #007bff;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+    }
+
+    .invite-btn:hover {
+        background: #0056b3;
+    }
+</style>
+
+</body>
+</html>

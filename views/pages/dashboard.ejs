@@ -1,0 +1,109 @@
+<link rel="stylesheet" href="/styles/dash.css">
+<div class="sidebar">
+    <div class="sidebar-header">
+        <div class="avatar">CC</div>
+        <div class="team-name"><%= userEmail %></div>
+    </div>
+    <input type="text" class="search-bar" placeholder="Search by title or topic">
+    <nav class="menu">
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">Recent</a></li>
+            <li><a href="#">Starred</a></li>
+        </ul>
+    </nav>
+    <div class="spaces">
+        <h4>Spaces</h4>
+        <button class="add-space">+</button>
+    </div>
+</div>
+<main class="main-content">
+    <header class="header">
+        <div class="app-title">CollabCanvas <span class="free-tag">FREE</span></div>
+        <div class="actions">
+            <button class="invite-btn">Invite members</button>
+            <button class="upgrade-btn">Upgrade</button>
+        </div>
+    </header>
+    <section class="template-section">
+        <div class="template-options">
+            <div class="template">Blank board</div>
+            <div class="template">Flowchart</div>
+            <div class="template">Mind Map</div>
+            <div class="template">Kanban Framework</div>
+            <div class="template">Quick Retrospective</div>
+            <div class="template">From Miroverse →</div>
+        </div>
+        <button class="create-new" onclick="openModal()">+ Create new</button>
+    </section>
+    <section class="boards">
+        <h3>Boards in this team</h3>
+        <div class="board-filters">
+            <label>Filter by:
+                <select>
+                    <option>All boards</option>
+                    <option>My boards</option>
+                </select>
+            </label>
+            <label>Sort by:
+                <select>
+                    <option>Last opened</option>
+                    <option>Alphabetical</option>
+                </select>
+            </label>
+        </div>
+        <div class="board-list">
+            <% if (boards && boards.length > 0) { %>
+                <% boards.forEach(board => { %>
+                    <div class="board-item">
+                        <span class="icon">📋</span>
+                        <span class="name"><%= board.name %></span>
+                        <span class="meta">Modified by <%= board.modifiedBy %>, <%= board.modifiedAt.toDateString() %></span>
+                        <a href="/board/<%= board.id %>">Open Board</a>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <p>No boards available</p>
+            <% } %>
+        </div>
+    </section>
+    <section class="join-board-section">
+        <h3>Join a Board</h3>
+        <form action="/join-board" method="POST">
+            <input type="text" name="boardLink" placeholder="Enter board link" required>
+            <button type="submit">Join Board</button>
+        </form>
+    </section>
+</main>
+
+<!-- Modal -->
+<div id="createBoardModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Create New Board</h2>
+        <form action="/api/boards/create" method="POST">
+            <label for="boardName">Board Name:</label>
+            <input type="text" id="boardName" name="boardName" required>
+            <button type="submit">Create</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openModal() {
+        document.getElementById('createBoardModal').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('createBoardModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('createBoardModal')) {
+            closeModal();
+        }
+    }
+</script>
+
+</body>
+</html>

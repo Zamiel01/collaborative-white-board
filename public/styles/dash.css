@@ -1,0 +1,337 @@
+/* General body styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    background-color: #f0f0f0; /* Light gray background */
+    height: 100vh;
+}
+
+/* Sidebar styles */
+.sidebar {
+    width: 250px;
+    background-color: #fff; /* White sidebar */
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.avatar {
+    background-color: #000; /* Black avatar */
+    color: #fff; /* White text */
+    font-weight: bold;
+    border-radius: 70%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 10px;
+    font-size: 16px;
+}
+
+.team-name {
+    position: relative;
+    font-size: 16px;
+    font-weight: bold;
+    color: #333; /* Dark gray */
+}
+
+.search-bar {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    background-color: #fff;
+    color: #000; /* Black text */
+}
+
+.menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menu ul li {
+    margin: 10px 0;
+}
+
+.menu ul li a {
+    text-decoration: none;
+    color: #333; /* Dark gray */
+    font-size: 14px;
+}
+
+.spaces {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    color: #333; /* Dark gray */
+}
+
+.add-space {
+    background-color: #000; /* Black button */
+    color: #fff; /* White text */
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 20px;
+    text-align: center;
+    line-height: 30px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Main content styles */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #f0f0f0; /* Light gray */
+    overflow-y: auto;
+}
+
+.header {
+    background-color: #fff; /* White header */
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.app-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #000; /* Black text */
+}
+
+.free-tag {
+    color: #000; /* Black text */
+    font-size: 12px;
+    margin-left: 5px;
+}
+
+.actions button {
+    background-color: #000; /* Black buttons */
+    color: #fff; /* White text */
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background-color 0.3s;
+}
+
+.actions button:hover {
+    background-color: #333; /* Darker gray on hover */
+}
+
+/* Template section styles */
+.template-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #fff; /* White background */
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+.template-options {
+    display: flex;
+    gap: 15px;
+}
+
+.template {
+    background-color: #f8f8f8; /* Light gray */
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.template:hover {
+    background-color: #e0e0e0; /* Slightly darker gray */
+    transform: scale(1.05);
+}
+
+.create-new {
+    background-color: #000; /* Black button */
+    color: #fff; /* White text */
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.create-new:hover {
+    background-color: #333; /* Darker gray */
+}
+
+/* Boards section styles */
+.boards {
+    padding: 20px;
+    background-color: #fff; /* White background */
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+    flex: 1;
+}
+
+.boards h3 {
+    margin-bottom: 20px;
+    color: #333; /* Dark gray */
+    font-size: 18px;
+}
+
+.board-filters {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.board-filters label {
+    font-size: 14px;
+    color: #555; /* Medium gray */
+}
+
+.board-filters select {
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    background-color: #fff;
+    color: #000; /* Black text */
+}
+
+.board-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.board-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    background-color: #fff; /* White cards */
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.board-item:hover {
+    background-color: #f0f0f0; /* Light gray on hover */
+    transform: scale(1.02);
+}
+
+.board-item .icon {
+    font-size: 20px;
+    color: #000; /* Black icons */
+}
+
+.board-item .name {
+    font-weight: bold;
+    color: #000; /* Black text */
+}
+
+.board-item .meta {
+    color: #666; /* Gray meta text */
+    font-size: 12px;
+}
+
+/* Modal styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    padding-top: 60px;
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 5% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 50%; /* Could be more or less, depending on screen size */
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    color: #000; /* Black text */
+}
+
+.modal-content label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #333; /* Dark gray */
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.modal-content button {
+    background-color: #000; /* Black button */
+    color: #fff; /* White text */
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.modal-content button:hover {
+    background-color: #333; /* Darker gray */
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}

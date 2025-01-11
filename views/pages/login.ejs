@@ -1,0 +1,21 @@
+<%- include('../partials/head') %>
+
+<h1>CollabCanvas</h1>
+<h2>Login</h2>
+<form action="/api/auth/login" method="POST">
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required>
+    
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+    
+    <button type="submit">Login</button>
+</form>
+
+<!-- Signup Option -->
+<div class="signup-option">
+    <p>Don't have an account? <a href="/signup">Sign up here</a></p>
+</div>
+
+</body>
+</html>

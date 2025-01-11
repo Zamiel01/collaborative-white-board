@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Whiteboard</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="avatar">NO</div>
+            <div class="team-name">Not</div>
+        </div>
+        <input type="text" class="search-bar" placeholder="Search by title or topic">
+        <nav class="menu">
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Recent</a></li>
+                <li><a href="#">Starred</a></li>
+            </ul>
+        </nav>
+        <div class="spaces">
+            <h4>Spaces</h4>
+            <button class="add-space">+</button>
+        </div>
+    </div>
+    <main class="main-content">
+        <header class="header">
+            <div class="app-title">miro <span class="free-tag">FREE</span></div>
+            <div class="actions">
+                <button class="invite-btn">Invite members</button>
+                <button class="upgrade-btn">Upgrade</button>
+            </div>
+        </header>
+        <section class="template-section">
+            <div class="template-options">
+                <div class="template">Blank board</div>
+                <div class="template">Flowchart</div>
+                <div class="template">Mind Map</div>
+                <div class="template">Kanban Framework</div>
+                <div class="template">Quick Retrospective</div>
+                <div class="template">From Miroverse →</div>
+            </div>
+            <button class="create-new">+ Create new</button>
+        </section>
+        <section class="boards">
+            <h3>Boards in this team</h3>
+            <div class="board-filters">
+                <label>Filter by:
+                    <select>
+                        <option>All boards</option>
+                        <option>My boards</option>
+                    </select>
+                </label>
+                <label>Sort by:
+                    <select>
+                        <option>Last opened</option>
+                        <option>Alphabetical</option>
+                    </select>
+                </label>
+            </div>
+            <div class="board-list">
+                <div class="board-item">
+                    <span class="icon">⏲</span>
+                    <span class="name">Untitled</span>
+                    <span class="meta">Modified by karli5760, Today</span>
+                </div>
+                <div class="board-item">
+                    <span class="icon">👋</span>
+                    <span class="name">Sin título</span>
+                    <span class="meta">Modified by Holiwis, Today</span>
+                </div>
+                <div class="board-item">
+                    <span class="icon">📍</span>
+                    <span class="name">Mind Map</span>
+                    <span class="meta">Modified by Umesh, Yesterday</span>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
