@@ -1,6 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whiteboard</title>
+    <link rel="stylesheet" href="/styles/board.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.2/jspdf.min.js"></script>
+</head>
+<body>
 <%- include('../partials/head') %>
-<link rel="stylesheet" href="/styles/board.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 
 <div class="board-container">
     <div class="sidebar">
@@ -29,8 +39,11 @@
             <li><button class="tool-btn" id="redo-tool"><i class="fas fa-redo"></i> Redo</button></li>
             <li><button class="tool-btn" id="reset-tool"><i class="fas fa-trash"></i> Reset</button></li>
             <li><button class="tool-btn" id="chat-tool"><i class="fas fa-comments"></i> Chat</button></li>
+            <li><button class="tool-btn" id="export-tool"><i class="fas fa-file-pdf"></i> Export as PDF</button></li>
         </ul>
         <button class="invite-btn" id="invite-btn"><i class="fas fa-user-plus"></i> Invite</button>
+        <input type="text" id="invite-link-input" placeholder="Paste invite link here..." />
+        <button id="join-board-btn">Join Board</button>
     </div>
     <div class="board-content">
         <h1><%= board.name %></h1>
@@ -257,6 +270,34 @@
         saveBoardState();
     });
 
+    document.getElementById('export-tool').addEventListener('click', () => {
+        const pdf = new jsPDF('l', 'pt', 'a4'); // Landscape orientation
+        html2canvas(canvas).then((canvas) => {
+            const imgData = canvas.toDataURL('image/png');
+            const imgWidth = 190; // Width of the image in mm
+            const pageHeight = pdf.internal.pageSize.height; // Height of the page
+            const imgHeight = (canvas.height * imgWidth) / canvas.width; // Calculate height based on width
+            let heightLeft = imgHeight;
+
+            let position = 0;
+
+            // Add the image to the PDF
+            pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+
+            // Add new pages if the image height exceeds the page height
+            while (heightLeft >= 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+
+            // Save the PDF
+            pdf.save('whiteboard.pdf');
+        });
+    });
+
     function saveHistory() {
         history = history.slice(0, historyIndex + 1);
         history.push(canvas.toDataURL());
@@ -413,6 +454,32 @@
             console.error('Failed to copy invite link: ', err);
         });
     });
+
+    // Join board functionality
+    document.getElementById('join-board-btn').addEventListener('click', () => {
+        const inviteLink = document.getElementById('invite-link-input').value.trim();
+        if (inviteLink) {
+            const boardId = inviteLink.split('/board/')[1]; // Extract board ID from the link
+            if (boardId) {
+                // Load the board state for the given board ID
+                const savedState = localStorage.getItem(`${boardId}-state`);
+                if (savedState) {
+                    const state = JSON.parse(savedState);
+                    elements = state.elements;
+                    history = state.history;
+                    historyIndex = state.historyIndex;
+                    restoreHistory();
+                    alert('Successfully joined the board!');
+                } else {
+                    alert('Invalid invite link or board does not exist.');
+                }
+            } else {
+                alert('Invalid invite link.');
+            }
+        } else {
+            alert('Please paste a valid invite link.');
+        }
+    });
 </script>
 
 <style>
@@ -498,6 +565,28 @@
 
     .invite-btn:hover {
         background: #0056b3;
+    }
+
+    #invite-link-input {
+        width: calc(100% - 20px);
+        padding: 10px;
+        margin-top: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    #join-board-btn {
+        margin-top: 10px;
+        padding: 10px;
+        background: #28a745;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+    }
+
+    #join-board-btn:hover {
+        background: #218838;
     }
 </style>
 

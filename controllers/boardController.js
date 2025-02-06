@@ -8,8 +8,6 @@ exports.createBoard = async (req, res, next) => {
         const { boardName, teamId: bodyTeamId, modifiedBy: bodyModifiedBy } = req.body;
         const { teamId: sessionTeamId, userEmail: sessionModifiedBy } = req.session;
 
-        console.log('Session data:', req.session); // Log session data for debugging
-
         const teamId = sessionTeamId || bodyTeamId;
         const modifiedBy = sessionModifiedBy || bodyModifiedBy;
 
@@ -29,5 +27,29 @@ exports.createBoard = async (req, res, next) => {
     } catch (err) {
         console.error('Error creating board:', err);
         res.status(500).send('Error creating board');
+    }
+};
+
+// New method to generate an invitation link
+exports.generateInvitationLink = async (req, res) => {
+    try {
+        const { boardId } = req.params; // Get board ID from request parameters
+        const board = await Board.findById(boardId);
+
+        if (!board) {
+            return res.status(404).json({ error: 'Board not found' });
+        }
+
+        // Generate a unique invitation link (this is a simple example)
+        const invitationLink = `http://yourapp.com/board/${boardId}/invite`;
+
+        // Save the invitation link to the board
+        board.invitationLink = invitationLink;
+        await board.save();
+
+        res.status(200).json({ invitationLink });
+    } catch (err) {
+        console.error('Error generating invitation link:', err);
+        res.status(500).send('Error generating invitation link');
     }
 };
